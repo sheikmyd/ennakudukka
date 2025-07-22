@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+  <meta charset="UTF-8" />
+  <title>Quiz Game</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      max-width: 900px;
+      margin: auto;
+      padding: 20px;
+      background: linear-gradient(to bottom right, #d1f2eb, #fce4ec);
+      background-size: cover;
+      color: #333;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    h1 {
+      text-align: center;
+      color: #4b0082;
+      font-size: 38px;
+      margin-bottom: 10px;
+    }
+
+    #quiz-container {
+      background: #ffffffcc;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      margin-bottom: 30px;
+    }
+
+    .question {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: #2f4f4f;
+    }
+
+    .options label {
+      display: block;
+      background: #e0f7fa;
+      padding: 12px 18px;
+      margin: 8px 0;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+    }
+
+    .options input[type="radio"] {
+      margin-right: 12px;
+    }
+
+    .options label:hover {
+      background-color: #b2ebf2;
+      border-color: #00acc1;
+      color: #006064;
+    }
+
+    .selected {
+      border-color: #006064 !important;
+      background-color: #a7ffeb !important;
+    }
+    .option-correct {
+      background-color: #c8e6c9 !important;  /* light green */
+      border-color: #2e7d32 !important;
+      color: #1b5e20 !important;
+    }
+
+    .option-incorrect {
+      background-color: #ffcdd2 !important;  /* light red */
+      border-color: #c62828 !important;
+      color: #b71c1c !important;
+    }
+
+
+    button {
+      margin: 10px 10px 0 0;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      background: #6c1c9e;
+      color: white;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #8e24aa;
+    }
+
+    #feedback {
+      margin-top: 20px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 18px;
+      font-weight: bold;
+      text-align: center;
+      display: none;
+    }
+
+    .correct {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .incorrect {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    @media screen and (max-width: 600px) {
+      body { padding: 10px; }
+      .question { font-size: 18px; }
+      button { width: 100%; margin: 10px 0; }
+    }
+
+    /* Toys and robot */
+    .animated-toys {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 120px;
+      animation: floatToy 4s infinite ease-in-out;
+    }
+
+    .animated-robot {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      width: 100px;
+      animation: waveRobot 3s infinite alternate;
+    }
+
+    @keyframes floatToy {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0px); }
+    }
+
+    @keyframes waveRobot {
+      0% { transform: rotate(0deg); }
+      50% { transform: rotate(5deg); }
+      100% { transform: rotate(0deg); }
+    }
+  </style>
+</head>
+<body>
+  <h1>Quiz Game 🤖🧠</h1>
+  <div id="quiz-container">
+    <h2 id="round-title"></h2>
+    <div id="question-content"></div>
+    <div id="feedback"></div>
+  </div>
+  <div id="controls">
+    <button id="skip-question">Skip Question</button>
+    <button id="next-question">Next Question</button>
+    <button id="skip-round">Skip Round</button>
+  </div>
+
+  <!-- Animated toys and robot -->
+  <!--img src="https://cdn-icons-png.flaticon.com/512/3468/3468369.png" class="animated-toys" alt="Toy Bear"-->
+  <!--img src="https://cdn-icons-png.flaticon.com/512/4712/4712027.png" class="animated-robot" alt="AI Robot"-->
+
+  <script>
+    const rounds = [
+      {
+        title: "மாவட்ட உணவுகள் / Regional Foods",
+        questions: [
+         {q: "மதுரையின் பிரபலமான கூட்டு உணவு எது?/What is the most popular specialty food of Madurai?", options:["ஜிகர்தண்டா(Jigarthanda)","வருவடா(Varu Vada)","சதுராப்பலம்(Sathurapazham)","மல்லி(Malli)"], answer:0},
+         {q: "திருநெல்வேலியின் பிரபலமான ஹல்வா வகை எது?/What is the most famous type of halwa from Tirunelveli?", options:["சோயா ஹல்வா(Soya Halwa)","சம்பா ஹல்வா(Samba Halwa)","பாசிப்பருப்பு ஹல்வா(Pasiparuppu Halwa)","சூரிய ஹல்வா(Sooriya Halwa)"], answer:2},
+         {q: "சென்னையில் பிரபலமான 'காப்பி' எது?/What is the most popular type of 'coffee' in Chennai", options:["தென்னிந்திய காப்பி(/fi/South Indian Coffee)","வடிந்திய காப்பி(North Indian Coffee)","மதுரை காப்பி(Madurai Coffee)","கோயம்புத்தூர் காப்பி(Coimbatore Coffee)"], answer:0},
+         {q: "கோயம்புத்தூரில் பிரபலமான உணவு?/What is the most popular food in Coimbatore?", options:["சாம்பார் சாதம்(Sambar Sadham)","மீன் குழம்பு(Meen Kuzhambu)","கார்பச்சடி(Karapachadi)","மொல்லி சாம்பார்(Molli Sambar)"], answer:0},
+         {q: "கள்ளக்குறிச்சி மாவட்டத்தில் பிரபலமான உணவு வகை?/What is the famous food item in Kallakurichi district?", options:["இடியாப்பம்(Idiyappam)","வெஜிடபிள் புலாவ்(Vegetable Pulao)","பிள்ளி சாதம்(Pilli Sadham)","மாட்டிறால்(Beef (Maatiraal))"], answer:3},
+         {q: "புதுக்கோட்டை மாவட்டத்தில் அதிகம் பரவியுள்ள சப்பாத்தி வகை எது?/Which type of flatbread is most commonly found in Pudukkottai district?", options:["தோசை(Dosa)","பரோட்டா(Parotta)","சப்பாத்தி(Chapati)","இடியாப்பம்(Idiyappam)"], answer:2},
+         {q: "திருவண்ணாமலையில் பிரபலமான உணவு எது?/What is the famous food in Thiruvannamalai", options:["சாம்பார்(Sambar)","உப்புமா(Upma)","சுண்டல்(Sundal)","இடியாப்பம்(Idiyappam)"], answer:1},
+         {q: "நாகப்பட்டினம் மாவட்டத்தில் பிரபலமான மீன் வகை எது?/What is the famous type of fish in Nagapattinam district?", options:["வெற்குறை மீன்()","பிரெட் மீன்(Bread Fish)","சாமன்(Salmon)","மீன்செய்தி(Meen Seithi)"], answer:0},
+         {q: "தஞ்சாவூரில் பிரபலமான மிட்டாய் வகை எது?/What is the famous sweet in Thanjavur?", options:["மரச்சிப்பன்(Marachipan)","மிட்டாய் கொழுப்பு(Mittai Kozhupu)","பேத்தி(Pethi)","மாங்காய் காய்(Maangai Kai)"], answer:3},
+         {q: "இராமநாதபுரம் மாவட்டத்தில் பிரபலமான இடியாப்பம் வகை எது?/What is the famous variety of idiyappam in Ramanathapuram district?",  options:["சாதாரண இடியாப்பம்(Plain Idiyappam)","காரம் இடியாப்பம்(Spicy Idiyappam)","பால் இடியாப்பம்(Milk Idiyappam)","சுவாதி இடியாப்பம்(Swathi Idiyappam)"], answer:1},
+         {q: "திண்டுக்கல்லில் பிரபலமான விருந்து?/ What is the famous feast in Dindigul?", options:["மசால் தோசை(Masala Dosa)","முட்டை வடை(Muttai Vadai (Egg Vadai))","சாம்பார் சாதம்(Sambar Rice)","உப்புமா(Upma)"], answer:0},
+         {q: "வேலூர் மாவட்டத்தில் பிரபலமான சிக்கன் வகை எது?/What is the famous chicken variety in Vellore district?", options:["பிரியாணி(Biryani)","ரொட்டி(Roti)","பேபர் கிரில்(Paper Grill)","சிக்கன் கூட்டு(Chicken Kootu)"], answer:3},
+         {q: "கரூர் மாவட்டத்தில் பிரபலமான பழமையான உணவு வகை எது?/What is the famous traditional food in Karur district?", options:["சாம்பார் சாதம்(Sambar Rice)","பொங்கல்(Pongal)","முட்டை சட்னி(Egg Chutney)","சின்ன வடை(Small Vadai)"], answer:1},
+         {q: "சேலத்தில் பிரபலமான  வடை எது?/What is the famous “vadai” in Salem?", options:["கார வடை(Spicy Vadai)","மோர் வடை(Curd Vadai)","சூப்பர் வடை(Super Vadai)","சுண்டல்(Sundal)"], answer:0},
+         {q: "கடலூரில் பிரபலமான உணவு எது?/What is the famous food in Cuddalore?", options:["மீன் குழம்பு(Fish Curry)","சாம்பார்(Sambar)","தோசை(Dosa)","இடியாப்பம்(Idiyappam)"], answer:0},
+         {q: "நீலகிரியில் பிரபலமான தேநீர் வகை எது?/What is the famous tea variety in Nilgiris?", options:["ஈரோடு தேநீர்(Erode Tea)","மேட்டுப்பாளையம் தேநீர்(Mettupalayam Tea)","கோவை தேநீர்(Coimbatore Tea)","உடுமலை தேநீர்(Udumalpet Tea)"], answer:1},
+         {q: "திருச்சியில் பிரபலமான இடியாப்பம் வகை எது?/What is the famous idiyappam variety in Trichy?", options:["கேழ்வரகு இடியாப்பம்(Ragi Idiyappam)","சாதாரண இடியாப்பம்(Plain Idiyappam)","காய்கறி இடியாப்பம்(Vegetable Idiyappam)","காரம் இடியாப்பம்(Spicy Idiyappam)"], answer:0},
+         {q: "தூத்துக்குடியில் பிரபலமான உணவு எது?/What is the famous food in Thoothukudi?", options:["சாம்பார்(Sambar)","புரோட்டா(Parotta)","மசாலா தோசை(Masala Dosa)","மீன் குழம்பு(Fish Curry)"], answer:3},
+         {q: "பெரம்பலூரில் பிரபலமான விருந்து எது?/What is the famous feast in Perambalur?", options:["பிரியாணி(Biryani)","சாம்பார்(Sambar)","தோசை(Dosa)","இடியாப்பம்(Idiyappam)"], answer:0},
+         {q: "விருதுநகரில் பிரபலமான உணவு எது?/What is the famous food in Virudhunagar?", options:["அவல்(Aval (Poha))","பிரியாணி(Biryani)","சாம்பார்(Sambar)","முட்டை வடை(Egg Vadai)"], answer:1},
+         {q: "சிவகங்கையில் பிரபலமான உணவு வகை எது?/What is the famous food in Sivagangai?", options:["பால் சூப்(Milk Soup)","சாம்பார்(Sambar)","முட்டை வடை(Egg Vadai)","தோசை(Dosa)"], answer:0},
+         {q: "காஞ்சிபுரத்தில் பிரபலமான உணவு எது?/What is the famous food in Kanchipuram?", options:["தோசை(Dosa)","பிரியாணி(Biryani)","முட்டை வடை(Egg Vadai)","சாம்பார்(Sambar)"], answer:0},
+         {q: "புதுச்சேரி பகுதியில் பிரபலமான உணவு எது?/What is the famous food in Puducherry region?", options:["பிரஞ்சு சாண்ட்விச்(French Sandwich)","பிரியாணி(Biryani)","தோசை(Dosa)","சாம்பார்(Sambar)"], answer:0},
+         {q: "வேளாண்மை மாவட்டத்தில் பிரபலமான உணவு எது?/What is the famous food in the Agricultural district?", options:["சாம்பா(Sambar)","தோசை(Dosa)","பிரியாணி(Biryani)","முட்டை வடை(Egg Vadai)"], answer:0},
+         {q: "தர்மபுரி மாவட்டத்தில் பிரபலமான உணவு எது? What is the famous food in Dharmapuri district?", options:["சாம்பார்(Sambar)","தோசை(Dosa)","பிரியாணி(Biryani)","முட்டை வடை(Egg Vadai)"], answer:1},
+         {q: "திருவள்ளூரில் பிரபலமான உணவு எது?/What is the famous food in Thiruvallur?", options:["தோசை(Dosa)","பிரியாணி(Biryani)","சாம்பார்(Sambar)","முட்டை வடை(Egg Vadai)"], answer:0},
+         {q: "கொயம்புத்தூரில் பிரபலமான உணவு எது?/What is the famous food in Coimbatore?", options:["சாம்பார்(Sambar)","பிரியாணி(Biryani)","தோசை(Dosa)","முட்டை வடை(Egg Vadai)"], answer:1},
+         {q: "இராமநாதபுரம் மாவட்டத்தில் பிரபலமான உணவு எது/What is the famous food in Ramanathapuram district??", options:["சாம்பார்(Sambar)","பிரியாணி(Biryani)","தோசை(Dosa)","முட்டை வடை(Egg Vadai)"], answer:2},
+         {q: "திண்டுக்கல்லில் பிரபலமான உணவு எது?/What is the famous food in Dindigul district?", options:["சாம்பார்(Sambar)","பிரியாணி(Biryani)","தோசை(Dosa)","முட்டை வடை(Egg Vadai)"], answer:0},
+         {q: "வேலூர் மாவட்டத்தில் பிரபலமான உணவு எது?/What is the famous food in Vellore district?", options:["சாம்பார்(Sambar)","பிரியாணி(Biryani)","தோசை(Dosa)","முட்டை வடை(Egg Vadai)"], answer:3}
+         
+        ]
+      },
+      {
+        title: " கலாச்சாரம் மற்றும் விழாக்கள்",
+        questions: [
+         {q: "திருவாரூரில் பெரிது கொண்டாடப்படும் திருவிழா எது? / What is the most celebrated festival in Thiruvarur?", options:["தேர் திருவிழா (Chariot Festival) ","கரகாட்டம் (Karakattam)","கார்த்திகை தீபம் (Karthigai Deepam)","பொங்கல்(Pongal)"], answer:0},
+         {q: "கோவில்களில் நடக்கும் பிரபலமான நாட்டியம் என்ன/Which dance is popular in temples?", options:["கரகாட்டம் (Karakattam)","பொம்மை நாடகம் (Bommalattam)","குத்து (Kuthu)","பாரத நாட்டியம் (Bharatanatyam) "], answer:3},
+         {q: "பொங்கல் திருவிழா எந்த மாதத்தில் வரும்?/In which month is the Pongal festival celebrated?", options:["ஜனவரி (January)","பிப்ரவரி (February)","டிசம்பர் (December)","நவம்பர் (December)"], answer:0},
+         {q: "கார்த்திகை தீபம் திருவிழா எங்கு பிரபலமாக நடைபெறும்?/Where is Karthigai Deepam festival most famous?", options:["திருவண்ணாமலை (Thiruvannamalai)","மதுரை (Madurai)","சென்னை (Chennai)","கோவை (Coimbatore)"], answer:0},
+         {q: "தென்கிழக்கு தமிழகம் அதிகம் கொண்டாடும் பண்டிகை எது?/Which festival is most celebrated in Southeast Tamil Nadu?", options:["பொங்கல்(Pongal)","தைப்பொங்கல் (Thai Pongal) ","மகர சங்கராந்தி (Makara Sankranti)","வைகாசி விசாகம் (Vaikasi Visakam)"], answer:1},
+         {q: "தமிழ் புத்தாண்டு எப்போது வரும்?/When is Tamil New Year celebrated?", options:["மார்ச் 15","ஜனவரி 1","ஏப்ரல் 14","டிசம்பர் 31"], answer:2},
+         {q: "பழமையான நாட்டியம் எந்தது?/Which is the oldest classical dance form?", options:["கரகாட்டம் (Karakattam)","பொம்மை நாடகம் (Bommalattam)","பல்லவி (Pallavi)","பாரத நாட்டியம் (Bharatanatyam)"], answer:3},
+         {q: "கார்த்திகை மாதத்தில் எங்கு விளக்கு ஏற்றி கொண்டாடப்படுகிறது?Where are lamps lit and celebrated during Karthigai month?", options:["திருவண்ணாமலை(Thiruvannamalai) ","சென்னை (Chennai)","மதுரை (Madurai)","கோவை (Coimbatore)"], answer:0},
+         {q: "திருவள்ளூர் மாவட்டத்தில் பிரபலமான இசை நிகழ்ச்சி எது?/What is the famous musical performance in Thiruvallur district?", options:["கரகாட்டம் (Karakattam)","பொம்மை நாடகம் (Bommalattam)","குருதங்கம் (Kurudangam)","பாரத நாட்டியம் (Bharatanatyam)"], answer:2},
+         {q: "மதுரை மாநகரில் நடைபெறும் பிரபலமான திருவிழா எது?/Which is the popular festival in Madurai city?", options:["ஜெயந்தி (Jayanthi)","பொங்கல்(Pongal)","பாண்டியன் திருவிழா(Mangaiyar Festival)","மங்கையர் திருவிழா(Mangaiyar Festival)"], answer:2},
+         {q: "பாரம்பரிய ஆடல்கள் எந்த காலம் ஆரம்பமானது?Traditional dances began during which period?", options:["மத்திய யுகம் (Medieval Era)","பாரத நாடகம் காலம் (Bharatanatyam Era) ","கோலாகலா (Kolakala)","தென்கிழக்கு யுகம் (Southeast Era)"], answer:1},
+         {q: "தமிழகத்தில் பிரபலமான நாட்டியம் எது?/Which is the most famous classical dance in Tamil Nadu?", options:["கரகாட்டம் (Karakattam)","பொம்மை நாடகம் (Bommalattam)","பாரத நாட்டியம் (Bharatanatyam)","குத்து (Kuthu)"], answer:2},
+         {q: "மகராசி காலத்தில் அதிகம் கொண்டாடப்பட்ட பண்டிகை எது?W/hich festival is most celebrated during Makara period?", options:["பொங்கல்(Pongal)","தீபாவளி (Diwali)","திருநாள் (Thirunal)","புராணபண்டிகை (Purana Festival)"], answer:0},
+         {q: "தமிழகத்தில் அதிகம் கொண்டாடப்படும் தீபாவளி பண்டிகை எது?/Which type of Diwali is most celebrated in Tamil Nadu?", options:["கிராம தீபாவளி (Village Diwali) ","நகர தீபாவளி (City Diwali)","வெள்ளை தீபாவளி (White Diwali)","சாதாரண தீபாவளி (Normal Diwali)"], answer:0},
+         {q: "திருச்சியில் பிரபலமான பாரம்பரிய இசை என்ன?What is the famous traditional music in Trichy?", options:["கரகாட்டம் (Karakattam)","பொம்மை நாடகம் (Bommalattam)","கர்ணாடக சங்கீதம் (Carnatic Music)","இளங்கோடிச் சங்கீதம் (Ilangodi Music)"], answer:2},
+         {q: "தமிழகத்தில் திருவிழாக்கள் எப்போது அதிகமாக இருக்கும்?/When are festivals most frequent in Tamil Nadu?", options:["காலையில்","மதியத்தில்","மாலை","இரவில்"], answer:2},
+         {q: "தமிழ் நாடு அரசு ஆண்டுதோறும் கொண்டாடும் முக்கிய விழா எது?/Which major festival is celebrated yearly by the Tamil Nadu Government?", options:["தமிழ் புத்தாண்டு (Tamil New Year)","பொங்கல்(Pongal)","தேசிய தினம்(Republic Day)","சுதந்திர தினம் (Independence Day)"], answer:0},
+         {q: "கோவில் திருவிழாக்களில் நடக்கும் நிகழ்ச்சி எது?/Which event takes place during temple festivals?", options:["தெருவிழா/தேரோட்டம்(Car Festival) ","திருவிழா (Festival)","தீபத்திருவிழா (Lamp Festival)","கோவில் திருவிழா (Temple Festival)"], answer:0},
+         
+         {q: "பொங்கல் விழா எத்தனை நாட்கள் கொண்டாடப்படுகிறது?/How many days is the Pongal festival celebrated?", options:["2","3","4","5"], answer:2},
+         {q: "தமிழ்நாட்டில் கொண்டாடப்படும் முக்கிய கலை விழா எது?/Which is the major art festival celebrated in Tamil Nadu?", options:["பொங்கல்(Pongal)","திருவிழா (Festival)","சங்கீத விழா (Music Festival)","நாட்டிய விழா (Dance Festival)"], answer:3},
+         {q: "திருவாரூரில் பிரபலமான நாட்டியம் எது?/Which dance is famous in Thiruvarur?", options:["கரகாட்டம் (Karakattam)","பொம்மை நாடகம் (Bommalattam)","பாரத நாட்டியம் (Bharatanatyam)","குத்து (Kuthu)"], answer:0},
+         {q: "தமிழகத்தில் பிரபலமான பாரம்பரிய நாடகம் எது?Which is the famous traditional drama in Tamil Nadu?", options:["கரகாட்டம் (Karakattam)","பொம்மை நாடகம் (Bommalattam)","பாரத நாடகம் (Bharata Drama)","குத்து (Kuthu)"], answer:1},
+         
+         {q: "தமிழகத்தின் தேசிய பறவை எது?/What is the state bird of Tamil Nadu?", options:["புறா","தேன் கிளி","மயில்","காகம்"], answer:2},
+         {q: "கோவை மாவட்டத்தில் பிரபலமான பாரம்பரிய ஆடல் எது?/Which is the famous traditional dance in Coimbatore district?", options:["கரகாட்டம் (Karakattam)","குத்து (Kuthu)","பொம்மை நாடகம் (Bommalattam)","பாரத நாட்டியம் (Bharatanatyam)"], answer:0},
+         {q: "தமிழகத்தில் உள்ள புகழ்பெற்ற கோயில் எது?", options:["மீனாட்சி அம்மன் கோயில்","சரணம் கோயில்","திருக்கழுகூர் கோயில்","தஞ்சாவூர் பெரிய கோயில்"], answer:3},
+         {q: "பொங்கல் பண்டிகையில் எது முக்கியம்?/What is important in Pongal festival?", options:["கணக்கு (Accounts)","தெய்வத்தை கண்டு மகிழ்தல் (Worshipping gods)","உணவு (Food)","நடனம் (Dance)"], answer:2},
+         {q: "தமிழகத்தில் அதிகம் நடைபெறும் பாரம்பரிய மேளம் எது?/Which is the most used traditional percussion in Tamil Nadu?", options:["தவில் (Thavil) ","சோறம் (Soram)","பள்ளி (Palli)","மரச்சியார் (Marachiyar)"], answer:0},
+         {q: "பொங்கல் பண்டிகை எத்தனை நாட்கள் கொண்டாடப்படுகிறது?/How many days is Pongal festival celebrated?", options:["1","2","3","4"], answer:3}
+        ]
+      }, 
+      {
+        title: "வரலாறு & முக்கிய நபர்கள்",
+        questions: [
+         {q: "தஞ்சாவூரில் பிரிஹதீஸ்வரர் கோவை யார் கட்டினர்?/ Who built the Brihadeeswarar Temple in Thanjavur?", options:["சோழர்(Cholan)","பாண்டியர்(Pandyar)","சேரன்(Cheran)","ஆங்கிலேயர் (British)"], answer:0},
+         {q: "பரம்பரையாக தமிழர்களுக்கு பெரிய பங்காற்றிய புலவர் யார்?/ Which poet contributed significantly to Tamil heritage?", options:["திருவள்ளுவர்","காளிதாஸ்","பெரியவார்","அருணாச்சலம்"], answer:0},
+         {q: "மதராசி என்னும் இராச்சியத்தின் தலைநகர் எது? / What was the capital of the Madharasi kingdom?", options:["மதுரை","கோயம்புத்தூர்","சென்னை","திருச்சி"], answer:0},
+         {q: "சோழர் வம்சத்தை நிறுவிய ராஜா யார்?/ Who founded the Chola dynasty?", options:["அரசு கொடை","அரசன் கோமாரன்","அரசன் சிலப்பதி","அரசன் கரிகாலன்"], answer:3},
+         {q: "பாண்டியர்கள் இயற்றிய புகழ்பெற்ற கோவில் எது? / Which famous temple was built by the Pandyas?", options:["மீனாட்சி அம்மன் கோயில்","போப்பல்குடி கோவில்","திருவள்ளூர் கோவில்","திருவாரூர் கோவில்"], answer:0},
+         {q: "திருவள்ளுவர் யார்? / Who is Thiruvalluvar?", options:["கவிஞர்","பெரியாரர்","ஆசிரியர்","பண்டிதர்"], answer:0},
+         {q: "தமிழர் இலக்கியத்திலேயே மிகப் புகழ்பெற்ற நூல்? / Most famous book in Tamil literature?", options:["திருக்குறள்","சிலப்பதிகாரம்","மணிமேகலை","கம்பராமாயணம்"], answer:0},
+         {q: "செங்கல் கட்டுமானத்தில் பெயர்பெற்ற தமிழர் எது? / Which Tamil dynasty is known for brick architecture?", options:["பாண்டியர்","சோழர்(Cholan)","பாண்டியன்","பெரியார்"], answer:1},
+         {q: "கி.மு 3ஆம் நூற்றாண்டில் வாழ்ந்த புகழ்பெற்ற தமிழர் யார்? / Who was a famous Tamil figure in 3rd century BCE?", options:["திருவள்ளுவர்","காளிதாஸ்","களி","கம்பன்"], answer:0},
+         {q: "பெரியார் என்று அழைக்கப்படும் தமிழர் சமூக முன்னோடி யார்? / Who is the social reformer known as Periyar?", options:["இராமமூர்த்தி","அண்ணா","இளங்கோசாமி","இராமசாமி"], answer:3},
+         {q: "மதுரையின் புகழ்பெற்ற அரசர் யார்? / Who was the famous ruler of Madurai?", options:["சோழர்(Cholan)","பாண்டியர்","பெரியார்","மதுரையை ராஜா"], answer:1},
+         {q: "தமிழகத்தில் முதன்முறையாக தியேட்டர் அறிமுகம் எப்போது/ When was theatre introduced in Tamil Nadu?", options:["கி.பி 19ஆம் நூற்றாண்டு","கி.பி 17ஆம் நூற்றாண்டு","கி.பி 20ஆம் நூற்றாண்டு","கி.பி 18ஆம் நூற்றாண்டு"], answer:0},
+         {q: "சென்னை நகரத்தின் பழைய பெயர் என்ன?", options:["மதராஸ்","சென்னை","கோவை","மதுரை"], answer:0},
+         {q: "தமிழகத்தில் பெரும் தாக்கத்தை ஏற்படுத்திய புலவர் யார்?", options:["திருவள்ளுவர்","கம்பர்","ஆனந்தம்","அருணாச்சலம்"], answer:1},
+         {q: "மதுரை நகரின் பழைய பெயர்?", options:["மதுரையூர்","மதுரைப்புரம்","மதுரை","மதுராபுரம்"], answer:2},
+         {q: "தமிழகத்தின் முதல் முதல்வர் யார்?", options:["காமராஜர்","ஜெயலலிதா","மு.கருணாநிதி","பெரியார்"], answer:0},
+         {q: "தமிழ் நாட்டின் மிகப்பெரும் பகுதி எது?", options:["சென்னை","மதுரை","திருச்சி","நீலகிரி"], answer:1},
+         {q: "பண்டியர் இராச்சியத்தின் தலைநகர் எது?", options:["மதுரை","திருச்சி","கோவை","சென்னை"], answer:0},
+         {q: "தமிழகத்தில் புகழ்பெற்ற விடுதலைப் போராட்ட தலைவர் யார்? / Tamil freedom fighter?", options:["சுபாஷ் சந்திர போஸ்","காமராஜர்","சுப்பிரமணிய பாரதியார்","பெரியார்"], answer:2},
+         {q: "தமிழகத்தில் பிரபலமான போராட்டக் காலம் எது?/ Notable protest period?", options:["1940-50","1950-60","1960-70","1930-40"], answer:3},
+         {q: "சென்னை மாநகரின் அமைப்பு எப்போது உருவானது? / Year Chennai was founded?", options:["1639","1650","1700","1800"], answer:0},
+         {q: "தமிழகத்தில் புகழ்பெற்ற கல்வியாளர் யார்?/ Famous educationist?", options:["பெரியார்","காமராஜர்","திருவள்ளுவர்","சு.ரா.பேசல்"], answer:1},
+         {q: "தமிழகத்தில் பெரும் தாக்கத்தை ஏற்படுத்திய அரசியல்வாதி யார்? / Influential politician?", options:["மு.கருணாநிதி","ஜெயலலிதா","காமராஜர்","அண்ணா"], answer:0},
+         {q: "தமிழகத்தின் பழமையான கல்வி மையம் எது? / Ancient educational center?", options:["மதுரை","கோவை","சென்னை","திருச்சி"], answer:0},
+         {q: "தமிழகத்தின் புகழ்பெற்ற ஆராய்ச்சியாளர் யார்? / Famous researcher?", options:["சு.ரா.பேசல்","திருவள்ளுவர்","கம்பர்","அண்ணா"], answer:0},
+         {q: "தமிழகத்தின் தேசிய தலைநகர் எது? / Capital of Tamil Nadu?", options:["சென்னை","மதுரை","கோவை","திருச்சி"], answer:0},
+         {q: "தமிழகத்தில் பிரபலமான வரலாற்று மையம் எது?", options:["தஞ்சாவூர்","மதுரை","திருச்சி","சென்னை"], answer:0},
+          
+        
+        ]
+      }
+    ];
+
+    let currentRound = 0;
+    let currentQ = 0;
+    let score = 0;
+    const answersReview = [];
+
+    const roundTitle = document.getElementById("round-title");
+    const questionContent = document.getElementById("question-content");
+    const feedbackDiv = document.getElementById("feedback");
+    const skipQBtn = document.getElementById("skip-question");
+    const nextQBtn = document.getElementById("next-question");
+    const skipRoundBtn = document.getElementById("skip-round");
+
+    function loadRound(index = 0) {
+      currentRound = index;
+      currentQ = 0;
+      roundTitle.innerText = `Round ${index + 1}: ${rounds[index].title}`;
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      const ques = rounds[currentRound].questions[currentQ];
+      let html = `<div class="question"><p><strong>Q${currentQ + 1}.</strong> ${ques.q}</p>`;
+      html += '<div class="options">';
+      ques.options.forEach((opt, i) => {
+        html += `<label><input type="radio" name="opt" value="${i}"> ${opt}</label>`;
+      });
+      html += '</div></div>';
+      questionContent.innerHTML = html;
+      feedbackDiv.style.display = 'none';
+
+      document.querySelectorAll('input[name="opt"]').forEach(input => {
+        input.onclick = () => {
+          document.querySelectorAll('.options label').forEach(label => label.classList.remove('selected'));
+          input.parentElement.classList.add('selected');
+        };
+      });
+    }
+
+    function showFeedback(isCorrect, correctAnswerText) {
+      feedbackDiv.style.display = 'block';
+      if (isCorrect) {
+        feedbackDiv.className = 'correct';
+        feedbackDiv.innerText = '✅ சரியான பதில்!';
+      } else {
+        feedbackDiv.className = 'incorrect';
+        feedbackDiv.innerText = `❌ தவறு! சரியான பதில்: ${correctAnswerText}`;
+      }
+    }
+
+    function finishRound() {
+      if (currentRound + 1 < rounds.length) {
+        loadRound(currentRound + 1);
+      } else {
+        showFinalReview();
+      }
+    }
+
+    function showFinalReview() {
+      roundTitle.innerHTML = "🎉 Quiz முடிந்தது!";
+      document.getElementById('controls').style.display = 'none';
+      feedbackDiv.style.display = 'none';
+
+      let html = `
+        <div style="text-align: center; padding: 20px; background: #d1c4e9; border-radius: 12px; margin-bottom: 20px;">
+          <h2 style="font-size: 28px; color: #4a148c;">🏆 மொத்த மதிப்பெண்: <span style="color: #2e7d32;">${score}</span></h2>
+        </div>
+      `;
+
+      answersReview.forEach((entry, i) => {
+        html += `
+          <div style="margin-bottom: 16px; padding: 10px; border: 1px solid #ccc; border-radius: 8px; background: #fafafa;">
+            <strong>Q${i + 1}:</strong><br/>${entry.q}
+            <br/>✅ <b>சரியான பதில்:</b> ${entry.correct}
+            <br/>📌 <b>உங்கள் பதில்:</b> ${entry.userAns || "<i>Skipped</i>"}
+          </div>
+        `;
+      });
+
+      questionContent.innerHTML = html;
+    }
+
+    skipQBtn.onclick = () => {
+      const ques = rounds[currentRound].questions[currentQ];
+      answersReview.push({ q: ques.q, correct: ques.options[ques.answer], userAns: null });
+      currentQ++;
+      if (currentQ >= rounds[currentRound].questions.length) finishRound();
+      else loadQuestion();
+    };
+
+   
+    nextQBtn.onclick = () => {
+     const sel = document.querySelector('input[name="opt"]:checked');
+     const ques = rounds[currentRound].questions[currentQ];
+     const correct = ques.answer;
+     const correctAnswerText = ques.options[correct];
+
+     if (!sel) {
+         feedbackDiv.style.display = 'block';
+         feedbackDiv.className = 'incorrect';
+         feedbackDiv.innerText = '⚠ தயவு செய்து ஒரு பதிலைத் தேர்ந்தெடுக்கவும்!';
+         return;
+        }
+
+     const selectedValue = parseInt(sel.value);
+     const userAnswer = ques.options[selectedValue];
+     answersReview.push({ q: ques.q, correct: correctAnswerText, userAns: userAnswer });
+
+      const allLabels = document.querySelectorAll('.options label');
+      const selectedLabel = sel.parentElement;
+
+      // Clear existing feedback classes
+     allLabels.forEach(label => {
+      label.classList.remove('option-correct', 'option-incorrect', 'selected');
+      });
+
+     if (selectedValue === correct) {
+         score++;
+         selectedLabel.classList.add('option-correct');
+         }
+     else {
+        selectedLabel.classList.add('option-incorrect');
+          // Optionally highlight the correct one
+         allLabels[correct].classList.add('option-correct');
+         }
+
+     showFeedback(selectedValue === correct, correctAnswerText);
+     currentQ++;
+
+     setTimeout(() => {
+         if (currentQ >= rounds[currentRound].questions.length) finishRound();
+         else loadQuestion();
+        }, 2000);
+    };
+
+
+    skipRoundBtn.onclick = finishRound;
+
+    loadRound();
+  </script>
+</body>
+</html>
